@@ -20,21 +20,21 @@ const __dirname = path.resolve();
 const isOriginAllowed = (origin) => {
   if (!origin) return true;
 
-  // Allow all DevTunnel domains
+  // Development
+  if (origin.startsWith("http://localhost")) return true;
+
+  // DevTunnel
   if (origin.endsWith(".devtunnels.ms")) return true;
 
-  // Allow GitHub Pages
+  // GitHub Pages
   if (origin.endsWith(".github.io")) return true;
 
-  // Allow Railway
-  if (
-    origin.endsWith(".railway.app") ||
-    origin.endsWith(".up.railway.app")
-  )
-    return true;
+  // Railway
+  if (origin.endsWith(".railway.app")) return true;
+  if (origin.endsWith(".up.railway.app")) return true;
 
-  // Allow localhost (development)
-  if (origin.startsWith("http://localhost")) return true;
+  // ✅ Vercel (Production Frontend)
+  if (origin.endsWith(".vercel.app")) return true;
 
   return false;
 };
@@ -57,10 +57,20 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+/* ================= ROOT ROUTE ================= */
+
+app.get("/", (req, res) => {
+  res.status(200).send("ZedChat Backend is Running 🚀");
+});
+
+/* ================= API ROUTES ================= */
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/userdata", userdataRoutes);
+
+/* ============ PRODUCTION STATIC SERVE ============ */
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
@@ -71,6 +81,8 @@ if (process.env.NODE_ENV === "production") {
     );
   });
 }
+
+/* ================= START SERVER ================= */
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
